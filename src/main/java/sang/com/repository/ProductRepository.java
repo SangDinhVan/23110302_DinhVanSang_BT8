@@ -1,4 +1,7 @@
 package sang.com.repository;
 
-public class ProductRepository {
-}
+import sang.com.domain.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+
+public interface ProductRepository extends JpaRepository<Product, Long> {}

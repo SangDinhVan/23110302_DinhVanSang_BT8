@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<td>
+    <button class="btn btn-sm btn-outline-primary me-2" onclick="edit(${x.id})">Edit</button>
+    <button class="btn btn-sm btn-outline-danger" onclick="del(${x.id})">Delete</button>
+</td>`;
+tbody.appendChild(tr);
+});
+}
+
+
+function openCreate(){
+currentId = null;
+document.getElementById('modalTitle').textContent = 'New Product';
+document.getElementById('name').value = '';
+document.getElementById('price').value = '';
+document.getElementById('category').value = '';
+modal.show();
+}
+
+
+async function edit(id){
+const rs = await fetch(`${api}/${id}`);
+const x = await rs.json();
+currentId = id;
+document.getElementById('modalTitle').textContent = 'Edit Product';
+document.getElementById('name').value = x.name;
+document.getElementById('price').value = x.price;
+document.getElementById('category').value = x.categoryId ?? '';
+modal.show();
+}
+
+
+async function del(id){
+if(!confirm('Delete this item?')) return;
+await fetch(`${api}/${id}`, { method: 'DELETE' });
+await load();
+}
+
+
+async function save(){
+const body = {
+name: document.getElementById('name').value.trim(),
+price: parseFloat(document.getElementById('price').value || '0'),
+categoryId: document.getElementById('category').value ? Number(document.getElementById('category').value) : null
+};
+const method = currentId ? 'PUT' : 'POST';
+const url = currentId ? `${api}/${currentId}` : api;
+const rs = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+if(!rs.ok){ alert('Validate error!'); return; }
+modal.hide();
+await load();
+}
+
+
+document.getElementById('btnNew').addEventListener('click', async ()=>{ await loadCats(); openCreate(); });
+
+
+document.getElementById('btnSave').addEventListener('click', save);
+
+
+(async function init(){ await loadCats(); await load(); })();
+</script>
+</body>
+</html>

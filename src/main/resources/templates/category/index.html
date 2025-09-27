@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+const modalEl = document.getElementById('modal');
+const modal = new bootstrap.Modal(modalEl);
+
+
+async function load() {
+const rs = await fetch(api);
+const data = await rs.json();
+const tbody = document.querySelector('#tbl tbody');
+tbody.innerHTML = '';
+data.forEach(x => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${x.id}</td>
+<td>${x.name}</td>
+<td>${x.description ?? ''}</td>
+<td>
+    <button class="btn btn-sm btn-outline-primary me-2" onclick="edit(${x.id})">Edit</button>
+    <button class="btn btn-sm btn-outline-danger" onclick="del(${x.id})">Delete</button>
+</td>`;
+tbody.appendChild(tr);
+});
+}
+
+
+function openCreate(){
+currentId = null;
+document.getElementById('modalTitle').textContent = 'New Category';
+document.getElementById('name').value = '';
+document.getElementById('description').value = '';
+modal.show();
+}
+
+
+async function edit(id){
+const rs = await fetch(`${api}/${id}`);
+const x = await rs.json();
+currentId = id;
+document.getElementById('modalTitle').textContent = 'Edit Category';
+document.getElementById('name').value = x.name;
+document.getElementById('description').value = x.description ?? '';
+modal.show();
+}
+
+
+async function del(id){
+if(!confirm('Delete this item?')) return;
+await fetch(`${api}/${id}`, { method: 'DELETE' });
+await load();
+}
+
+
+async function save(){
+const body = {
+name: document.getElementById('name').value.trim(),
+description: document.getElementById('description').value.trim()
+};
+const method = currentId ? 'PUT' : 'POST';
+const url = currentId ? `${api}/${currentId}` : api;
+const rs = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+if(!rs.ok){ alert('Validate error!'); return; }
+modal.hide();
+await load();
+}
+
+
+document.getElementById('btnNew').addEventListener('click', openCreate);
+
+
+document.getElementById('btnSave').addEventListener('click', save);
+
+
+load();
+</script>
+</body>
+</html>
